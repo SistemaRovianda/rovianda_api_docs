@@ -1,0 +1,4326 @@
+openapi: 3.0.3
+info:
+  title: Rovianda - OpenAPI 3.0
+  description: Servicios de NitBit
+  termsOfService: http://swagger.io/terms/
+  contact:
+    email: apiteam@swagger.io
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.11
+servers:
+  - url: http://localhost
+tags:
+  - name: Seller
+    description: Servicios de usuarios vendedores
+  - name: Clients
+    description: Servicios de clientes
+  - name: Products
+    description: Servicios de productos
+  - name: Sales
+    description: Servicios de ventas
+  - name: Catalogs
+    description: Servicios de catalogos
+  - name: Users
+    description: Servicios de gestion de usuarios
+  - name: Quality
+    description: Servicios de gestion en area de Calidad
+paths:
+  /rovianda/admin-sales/sellers:
+    get:
+      tags:
+        - Seller
+      summary: Servicio que obtiene el listado de los vendedores de rovianda
+      description: El servicio retornará el listado de los usuarios con rol de vendedor y/ó repartidor
+      operationId: getUsersSellers
+      responses:
+        200:
+          description: Usuario registrado sin verificación
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListSellers"
+  /rovianda/seller-client/{clientId}:
+    put:
+      tags:
+        - Seller
+      summary: Servicio de actualizacion de datos de cliente de un vendedor
+      description: El servicio recibirá informacion para actualizar los metadatos del usuario
+      operationId: updateSellerClient
+      parameters:
+        - in: path
+          name: clientId
+          schema:
+            type: number
+          required: true
+      requestBody:
+        description: Datos a actualizar
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SellerClientUpdateRequest"
+      responses:
+        204:
+          description: Cliente actualizado
+  /rovianda/get-days-visit/{clientId}:
+    get:
+      tags:
+        - Seller
+      summary: Servicio que retornar los dias de visita de un cliente
+      description: El servicio retornará la agenda de visita de un cliente
+      operationId: getScheduleByClientId
+      parameters:
+        - in: path
+          name: clientId
+          required: true
+          schema:
+            type: number
+      responses:
+        200:
+          description: Dias de visita
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DaysVisitedResponse"
+  /rovianda/client-register/last-count:
+    get:
+      tags:
+        - Clients
+      summary: Servicio de retorno de ultimo id de registro de cliente
+      description: El servicio retornará el último id de registro de cliente para los registros siguientes
+      operationId: getCountSellerClient
+      responses:
+        200:
+          description: Último id de registro de cliente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LastCountClient"
+  /rovianda/admin-sales/client/{sellerId}:
+    post:
+      tags:
+        - Clients
+      summary: Servicio de registro de nuevo cliente
+      description: El servicio recibirá los datos del cliente a registrar asi como el id del vendedor al cuál será vinculado.
+      operationId: registerSellerClient
+      parameters:
+        - in: path
+          name: sellerId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: Datos del nuevo cliente
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SellerClientRegisterRequest"
+      responses:
+        201:
+          description: Cliente registrado
+  /rovianda/client-delete/{clientId}:
+    delete:
+      tags:
+        - Clients
+      summary: Servicio para eliminar un cliente (Eliminado lógico)
+      description: El servicio recibira el id del cliente mediante el path y será eliminado logicamente.
+      operationId: deleteClient
+      parameters:
+        - in: path
+          name: clientId
+          required: true
+          schema:
+            type: number
+      responses:
+        204:
+          description: Cliente eliminado
+  /rovianda/report/seller/summary/{sellerId}:
+    get:
+      tags:
+        - Seller
+      summary: Servicio de reporte de resumen de vendedor por día
+      description: El servicio recibirá el id del vendedor asi como la fecha de la cuál se realizará el reporte de resumen de venta.
+      parameters:
+        - in: path
+          name: sellerId
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: from
+          schema:
+            type: string
+            format: date
+          required: true
+        - in: query
+          name: to
+          schema:
+            type: string
+            format: date
+          required: true
+        - in: query
+          name: type
+          required: true
+          schema:
+            type: string
+            enum:
+              - pdf
+              - excel
+      responses:
+        200:
+          description: Archivo BLOB (Reporte)
+  /rovianda/admin-sales/allclients:
+    get:
+      tags: 
+        - Clients
+      summary: Servicio que retorna el listado de todos los clientes de rovianda
+      description: El servicio retornará todos los clientes de rovianda
+      operationId: getAllClientsList
+      responses:
+        200:
+          description: Listado de clientes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AllClientListResponse"
+  /rovianda/admin-sales/allproducts:
+    get:
+      tags:
+        - Products
+      summary: Servicio que retorna el listado de todos los productos de rovianda
+      description: El servicio retornará el listado de todos los productos de rovianda.
+      operationId: getAllProducts
+      responses:
+        200:
+          description: Listado de productos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListOfAllProducts"
+  /rovianda/report/general/admin-sales:
+    post:
+      tags:
+        - Sales
+      summary: Servicio de reporte general de ventas
+      description: El servicio retornará el reporte general de ventas en formato excel según la fecha indicada
+      operationId: getGeneralReportSales
+      parameters:
+        - in: query
+          name: dateStart
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: dateEnd
+          required: true
+          schema:
+            type: string
+            format: date
+      requestBody:
+        description: parametros de filtrado y formato
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GeneralSalesReportRequest"
+      responses:
+        200:
+          description: Reporte general de ventas
+  /rovianda/metrics/general/admin-sales:
+    get:
+      tags:
+        - Sales
+      summary: Servicio de retorno de metricas generales de ventas
+      description: El servicio retornará las metricas generales de ventas
+      operationId: generalAdminMetrics
+      parameters:
+        - in: query
+          name: dateStart
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: dateEnd
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: type
+          required: true
+          schema:
+            type: string
+            enum:
+              - YESTERDAY
+              - WEEK
+              - LAST_MONTH
+              - LAST_YEAR
+              - MONTH_LAST_YEAR
+      responses:
+        200:
+          description: Listado de metricas para grafico
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListGeneralSalesMetrics"
+  /rovianda/metrics/report/general/admin-sales:
+    get:
+      tags:
+        - Sales
+      summary: Servicio de retorno de reporte de metricas generales de ventas
+      description: El servicio retornará el reporte de metricas generales de ventas
+      operationId: generalAdminMetricsReport
+      parameters:
+        - in: query
+          name: dateStart
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: dateEnd
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: type
+          required: true
+          schema:
+            type: string
+            enum:
+              - pdf
+              - excel
+      responses:
+        200:
+          description: Reporte de metrica de ventas
+  /rovianda/metrics/general/rankin-sellers/{presentationId}:
+    get:
+      tags:
+        - Sales
+      summary: Servicio de ranking de ventas por producto
+      description: El servicio retornará el ranking de ventas por producto
+      operationId: getRakingByPresentationId
+      parameters:
+        - in: query
+          name: dateStart
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: dateEnd
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: path
+          name: presentationId
+          required: true
+          schema:
+            type: number
+      responses:
+        200:
+          description: Ranking de ventas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RankingAProductResponse"
+  /rovianda/metrics/report/general/rankin-sellers/{presentationId}:
+    get:
+      tags:
+        - Sales
+      summary: Servicio que retorna el reporte de ranking de ventas de un producto
+      description: El servicio retornará el reporte de raking de ventas de un producto
+      operationId: getRankingSellerReport
+      parameters:
+        - in: query
+          name: dateStart
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: dateEnd
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: path
+          name: presentationId
+          required: true
+          schema:
+            type: number
+        - in: query
+          name: type
+          required: true
+          schema:
+            type: string
+            enum:
+              - pdf
+              - excel
+      responses:
+        200:
+          description: Reporte
+  /rovianda/metrics/general/ranking/sellers:
+    get:
+      tags:
+        - Seller
+      summary: Servicio de retorno de ranking de vendedores
+      description: El servicio retornará el ranking de vendedores acorde a las ventas realizadas en ciertas fechas.
+      operationId: generalRankingSellers
+      parameters:
+        - in: query
+          name: dateStart
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: dateEnd
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        200:
+          description: Ranking de vendedores
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetMetricsRankingSellers"
+  /rovianda/report/metrics/general/ranking/sellers:
+    get:
+      tags:
+        - Seller
+      summary: Servicio de retorno de reporte de ranking de vendedores
+      description: Servicio que retorna el reporte de ranking de vendedores en formato pdf
+      operationId: GeneralMetricsRankingSellerReport
+      parameters:
+        - in: query
+          name: dateStart
+          required: true
+          schema: 
+            type: string
+            format: date
+        - in: query
+          name: dateEnd
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: type
+          required: true
+          schema:
+            type: string
+            enum:
+              - pdf
+              - excel
+      responses:
+        200:
+          description: Reporte de metricas de ranking de vendedores
+  /rovianda/sincronization/{sellerId}:
+    get:
+      tags:
+        - Seller
+      summary: Servicio para bajar informacion inicial para aplicacion vendedores
+      description: El servicio proporcionará la informacion inicial para comenzar operaciones en la aplicacion movil, asi como bajar los numeros de foliaje para utilizarlos en la aplicacion.
+      operationId: sincronizationInfo
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: date
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        200:
+          description: Datos de sincronización
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SincronizationInfo"
+  /rovianda/presale/sincronization/{sellerId}:
+    get:
+      tags:
+        - Seller
+      summary: Servicio para bajar informacion inicial para aplicacion prevendedores
+      description: El servicio proporcionará la informacion inicial para comenzar operaciones en la aplicacion movil de preventas, asi como bajar numeros de foliaje para utilizarlos en la aplicación.
+      operationId: sincronizationInfoPreseller
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: date
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        200:
+          description: Datos de sincronización
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SincronizationInfoPreseller"
+  /rovianda/delivers/update-presale:
+    put:
+      tags:
+        - Seller
+      summary: Servicio de actualizacion de preventa
+      description: El servicio se encargará de actualizar el estatus de una preventa a vendido o modificación en sus productos.
+      operationId: updatePresale
+      parameters:
+        - in: query
+          name: sellerId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Listado de preventas
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ListPreSalesToUpdate"
+      responses:
+        200:
+          description: folios de preventa sincronizados
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FoliosPresale"
+  /rovianda/delivers/register-debt:
+    post:
+      tags:
+        - Seller
+      summary: Servicio para registrar la resolucion de preventa de credito de un repartidor
+      description: El servicio se encargará de registrar las preventa de credito para los usuarios repartidores
+      operationId: deliverRegisterDebt
+      parameters:
+        - in: query
+          name: sellerId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Listado de ventas de credito a resolver
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeliverRegisterDebt"
+      responses:
+        200:
+          description: Folios de preventas sincronizadas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeliverRegisterDebtResponse"
+  /rovianda/delivers/sincronization/{sellerId}:
+    get:
+      tags:
+        - Seller
+      summary: Servicio para sincronizacion de repartidores
+      description: El servicio obtendrá la data inicial para comenzar con operaciones en la aplicacion de repartidor.
+      operationId: sincronizationInfoDeliver
+      parameters:
+        - in: path
+          name: sellerId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: date
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        200:
+          description: Datos de sincronización
+  /rovianda/status-sincronized/client:
+    post:
+      tags:
+        - Seller
+      summary: Servicio de actualizacion de estatus de sincronizacion de cliente
+      description: El servicio se encargará de actualizar el estatus de sincronizacion del cliente cuando este se actualice en alguno de sus datos.
+      operationId: statusSincronizationClient
+      requestBody:
+        description: Id de los clientes
+        content:
+          application/json:
+            schema: 
+              $ref: "#/components/schemas/ListIdsClients"
+      responses:
+        204:
+          description: Clients updated
+  /rovianda/cancel-reactivate/{saleId}:
+    put:
+      tags: 
+        - Seller
+      summary: Servicio para actualizar el estatus de una venta
+      description:  El servicio recibirá el id de la venta y procederá a cambiar el estatus  entre ACTIVE-CANCELED y Biserversa, y en caso de tener una solicitud de cancelación actualizar el estatus de dicha solicitud a aceptada o cancelada respectivamente.
+      operationId: cancelReactivateSale
+      parameters:
+        - in: path
+          name: saleId
+          required: true
+          schema:
+            type: number
+      responses:
+        204:
+          description: Estatus de la venta actualizada
+  /rovianda/report/sales-types:
+    post:
+      tags: 
+        - Sales
+      summary: Servicio de reporte de ventas por tipo
+      description: El servicio recibirá como parametros ciertos indicadores para la generacion de reportes deventas por tipo ya sea CANCELDAS Ú OMITIDAS.
+      operationId: reportSalesTypes
+      parameters:
+        - in: query
+          name: dateStart
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: dateEnd
+          required: true
+          schema:
+            type: string
+            format: date
+      requestBody:
+        description: Parametros de búsqueda de registros
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReportSalesTypesRequest"
+      responses:
+        200:
+          description: Reporte de ventas por tipo
+  /rovianda/set-token/{uid}:
+    put:
+      tags:
+        - Seller
+      summary: Servicio para asignar token de Firebase, para flujos de envio de notificaciones
+      description: El servicio recibirá el id del vendedor asi como el token del dispositivo para proceder con la asignacion del mismo en bd, para procesos de envio de notificaciones.
+      operationId: setTokenByUid
+      parameters:
+        - in: path
+          name: uid
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: token de usuario
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetTokenUIDRequest"
+      responses:
+        204:
+          description: token asignado
+  /rovianda/admin-sales/get-cancelations:
+    get:
+      tags:
+        - Seller
+      summary: Servicio para obtención de todas las solicitudes de cancelación de ventas.
+      description: El servicio retornará todas las solicitudes de cancelacion de ventas con su estatus de resolución.
+      operationId: adminSalesGetCancelations
+      parameters:
+        - in: query
+          name: type
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: dateStart
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: dateEnd
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: page
+          required: true
+          schema:
+            type: number
+        - in: query
+          name: perPage
+          required: true
+          schema:
+            type: number
+      responses:
+        200:
+          description: Listado de solicitudes de cancelación.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListCancelationsDevolutionsRequest"
+  /rovianda/admin-sales/get-devolutions:
+    get:
+      tags:
+        - Seller
+      summary: Servicio para obtener el listado de las solicitudes de devoluciones
+      description: EL servicio retornará el listado de las solicitudes de devoluciones
+      operationId: adminSalesGetDevolutionsRequests
+      parameters:
+        - in: query
+          name: type
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: dateStart
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: dateEnd
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: page
+          required: true
+          schema:
+            type: number
+        - in: query
+          name: perPage
+          required: true
+          schema:
+            type: number
+      responses:
+        200:
+          description: Listado de solicitudes de devolucion
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListCancelationsDevolutionsRequest"
+  /rovianda/update-sale/request/{saleId}:
+    put:
+      tags:
+        - Sales
+      summary: Servicio para actualizar el estatus de una venta de cancelado a activo y biseversa
+      description: El servicio actualizará el estatus  de una venta de cancelado a activo y biseversa
+      operationId: updateSaleRequest
+      parameters:
+        - in: query
+          name: status
+          required: true
+          schema:
+            type: string
+            enum:
+              - ACCEPTED
+              - DECLINED
+        - in: query
+          name: adminId
+          required: true
+          description: Id del administrador que acepta la solicitud
+          schema:
+            type: string
+        - in: path
+          name: saleId
+          required: true
+          schema:
+            type: number
+      responses:
+        204:
+          description: Estatus de la venta actualizado.
+  /rovianda/update-sale/request-devolution/{saleId}:
+    put:
+      tags:
+        - Sales
+      summary: Servicio para actualziar el estatus de ua devolucion de cancelado a activo y biseversa
+      description: El servicio actualizará el estatus de una devolucion de cancelado a activo y biseversa
+      operationId: updateSalesDevolutionRequest
+      parameters:
+        - in: query
+          name: status
+          required: true
+          schema:
+            type: string
+            enum:
+              - ACCEPTED
+              - DECLINED
+        - in: query
+          name: adminId
+          required: true
+          description: Id del administrador que acepta la solicitud
+          schema:
+            type: string
+        - in: path
+          name: saleId
+          required: true
+          schema:
+            type: number
+      responses:
+        204:
+          description: Estatus de la devolución actualizado.
+  /rovianda/admin-products/catalog:
+    post:
+      tags:
+        - Catalogs
+      summary: Servicio de catalogos de productos 
+      description: El servicio retornará el listado de productos
+      operationId: adminProductsCatalog
+      requestBody:
+        description: Indicio de busqueda del nombre del producto
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminProductsCatalogRequest"
+      responses:
+        200:
+          description: Listado de productos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminProductCatalogResponse"
+  /rovianda/admin-products/find-preregister:
+    get:
+      tags:
+        - Products
+      summary: Servicio para obtencion de informacion de un producto directo de la BD de Aspel SAE
+      description: El servicio hará una consulta en la BD de Aspel SAE para buscar el producto indicado mediante el código SAE.
+      operationId: adminProductFindPreregister
+      parameters:
+        - in: query
+          name: code
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Producto SAE
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminProductFindPreregisterResponse"
+  /rovianda/admin-products/regist-preregister:
+    post:
+      tags:
+        - Products
+      summary: Servicio para registro de productos de Aspel SAE a Sistema Rovianda (Nube)
+      description: El servicio recabará la información ajustada desde la plataforma de administrador y realizará el alta del producto a los catalogos para venta.
+      operationId: adminProductsRegistPreregister
+      requestBody:
+        description: Request de producto
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminProductRegistPreRegister"
+      responses:
+        201:
+          description: Producto registrado
+  /rovianda/admin-products/update/{presentationId}:
+    put:
+      tags:
+        - Products
+      summary: Servicio de actualizacion de producto
+      description: El servicio actualizará la informacion del producto por presentacion
+      operationId: adminProductsUpdatePresentation
+      parameters:
+        - in: path
+          name: presentationId
+          required: true
+          schema:
+            type: number
+      requestBody:
+        content:
+          application/json:
+            schema: 
+              $ref: "#/components/schemas/AdminProductUpdatePreRegister"
+      responses:
+        204:
+          description: Producto actualizado
+  /rovianda/admin-products/delete/{presentationId}:
+    delete:
+      tags:
+        - Products
+      summary: Servicio para eliminación de un producto de Sistema Rovianda (Nube)
+      description: El servicio se encargará de identificar al producto mediante el Id y procederá a eliminarlo de forma Lógica.
+      operationId: adminProductDeletePresentation
+      parameters:
+        - in: path
+          name: presentationId
+          required: true
+          schema:
+            type: number
+      responses:
+        204:
+          description: Producto eliminado
+  /rovianda/user-password:
+    post:
+      tags:
+        - Users
+      summary: Servicio encargado de actualizar la contraseña de los usuarios.
+      description: El servicio se encargará de actualizar la contraseña de los usuarios.
+      operationId: updateUserPassword
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserPasswordRequest"
+      responses:
+        204:
+          description: Contraseña actualizada
+  /rovianda/user-register:
+    post:
+      tags:
+        - Users
+      summary: Servicio para registro de usuario (DEPRECADO)
+      description: Segun los parametros recibidos se procederá a registrar a un usuario en el sistema acorde al rol (No es servicio para registrar vendedores).
+      operationId: userRegister
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserRegisterRequest" 
+      responses:
+        201:
+          description: Usuario registrado
+  /rovianda/simple-user/details/{uid}:
+    get:
+      tags:
+        - Users
+      summary: Servicio para obtencion de detalles de un usuario (DEPRECADO)
+      description: El servicio identificará el id del usuario y procedera a retornar los detalles del usuario.
+      operationId: simpleUserDetails
+      parameters:
+        - in: path
+          name: uid
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Detalles de un usuario
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SimpleUserDetailsResponse"
+  /rovianda/simple-user/update/{uid}:
+    put:
+      tags:
+        - Users
+      summary: Servicio para actualización de un usuario
+      description: El servicio identificará el usuario con el id proporcionado en el request y procederá a actualizar los datos del usuario.
+      operationId: simpleUserUpdateProperties
+      parameters:
+        - in: path
+          name: uid
+          required: true
+          schema:
+            type: string
+      responses:
+        204:
+          description: Usuario actualizado
+  /rovianda/user-seller/register:
+    post:
+      tags:
+        - Users
+      summary: Servicio para registrar un vendedor
+      description: Servicio para registrar un usuario vendedor al sistema y vincularlo a SAE mediante Ids.
+      operationId: userSellerRegister
+      requestBody:
+        content:
+          application/json:
+            schema: 
+              $ref: "#/components/schemas/UserSellerRegisterRequest"
+      responses:
+        201:
+          description: Usuario registrado
+  /rovianda/user-seller/details/{uid}:
+    get:
+      tags:
+        - Users
+      summary: Servicio para obtener los detalles de un usuario Vendedor
+      description: El servicio identificará al usuario mediante el id y procederá a retornar los detalles del usuario.
+      operationId: userSellerDetails
+      parameters:
+        - in: path
+          name: uid
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Detalles del usuario vendedor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserSellerRegisterRequest"
+  /rovianda/user-seller/update/{uid}:
+    put:
+      tags:
+        - Users
+      summary: Servicio para actualizar datos de un usuario vendedor
+      description: El servicio obtendrá los parametros enviados en el request y procederá a actualizar las propiedades del vendedor.
+      operationId: userSellerUpdate
+      parameters:
+        - in: path
+          name: uid
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserSellerUpdateRequest"
+      responses:
+        204:
+          description: Usuario vendedor actualizado
+  /rovianda/user-presale/register:
+    post:
+      tags: 
+        - Users
+      summary: Servicio para registro de un prevendedor
+      description: El servicio recibirá los parametros de registro un prevendedor y lo registrará en el sistema en la nube.
+      operationId: userPresaleRegister
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserPresaleRegisterRequest"
+      responses:
+        201:
+          description: Usuario prevendedor registrado
+  /rovianda/user-presale/details/{uid}:
+    get:
+      tags:
+        - Users
+      summary: Servicio para obtener los detalles de un prevendedor
+      description: El servicio identificará al usuario prevendedor y retornará los detalles del usuario.
+      operationId: userPreSalesDetails
+      parameters:
+        - in: path
+          name: uid
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Detalles del usuario preventista
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserPreSaleDetailsResponse"
+  /rovianda/user-presale/update/{uid}:
+    put:
+      tags:
+        - Users
+      summary: Servicio de actualizacion de datos de un usuario preventa
+      description: El servicio identificará al usuario mediante el id proporcionado en el path del request y procederá a actualizar las propiedades del usuario.
+      operationId: userPreSalesupdate
+      parameters:
+        - in: path
+          name: uid
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserPreSaleUpdateRequest"
+      responses:
+        204:
+          description: Usuario actualizado
+  /rovianda/catalogos-de-cfdi:
+    get:
+      tags:
+        - Catalogs
+      summary: Servicio que obtiene catalogos de CFDI para registro de clientes (DEPRECATED)
+      description: El servicio obtendrá los catalogos de Uso de CDFI para el registro de clientes.
+      operationId: catalogosDeCFDI
+      responses:
+        200:
+          description: Catalogos de uso de CFDI
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CatalogCDFIResponse"
+  /rovianda/catalogo-pagos-sat:
+    get:
+      tags:
+        - Catalogs
+      summary: Servicio que obtiene el catalogo de los tipos de pagos del SAT para registro de clientes (DEPRECATED).
+      description: El servicio retornará el catalogo de pagos del SAT para el registro de clientes.
+      operationId: catalogPagosSAT
+      responses:
+        200:
+          description: Catalogo de pagos SAT
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CatalogPaymentsSATResponse"
+  /rovianda/cheese:
+    post:
+      tags:
+        - Products
+      summary: Servicio de registro de productos linea "Quesos" (DEPRECATED)
+      description: El servicio se encargará de registrar un producto en la seccion de quesos obteniendo el producto mediante el codigo indicado en el request
+      operationId: productCheeseRegister
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductCheeseRegisterRequest"
+      responses:
+        200:
+          description: Producto registrado
+    get:
+      tags:
+        - Products
+      summary: Servicio encargado de obtener los productos de la linea de quesos (DEPRECATED)
+      description: El servicio obtendrá un listado con los productos que pertenecen a la linea de quesos
+      operationId: cheeseProductsList
+      responses:
+        200:
+          description: Listado de productos de quesos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheeseProductsList"
+  /rovianda/udpdate-cheese:
+    put:
+      tags:
+        - Products
+      summary: Servicio para actualizar el stock de un producto de quesos (DEPRECATED)
+      description: El servicio se encargará de actualizar el stock de un producto de quesos acorde a los parametros del request.
+      operationId: updateCheese
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCheeseRequest"
+      responses:
+        204:
+          description: Stock de producto actualizado
+  /rovianda/customer/create:
+    post:
+      tags:
+        - Clients
+      summary: Servicio de registro de clientes
+      description: El servicio se encargará de registrar a un cliente con base a los parametros recibidos.
+      operationId: customerCreate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerCreateRequest"
+      responses: 
+        201:
+          description: Cliente registrado
+  /rovianda/seller/customer/create:
+    post:
+      tags:
+        - Clients
+      summary: Servicio para registrar un cliente a un vendedor 
+      description: El servicio esta especialmente construido para registrar clientes a un vendedor.
+      operationId: sellerCustomerCreate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SellerCustomerCreateRequest"
+      responses:
+        201:
+          description: Vendedor registrado
+  /rovianda/seller/customer/schedule:
+    get:
+      tags:
+        - Clients
+      summary: Servicio para obtener la agenda de visita de un vendedor
+      description: El servicio se encargará de obtener la agenda de visita de un vendedor
+      operationId: sellerCustomerSchedule
+      parameters:
+        - in: query
+          name: sellerUid
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: date
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        200:
+          description: Agenda de visita de un vendedor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SellerCustomerScheduleResponse"
+  /rovianda/seller/customer/schedule/{clientId}:
+    put:
+      tags:
+        - Clients
+      summary: Servicio para actualizar el estatus de vista de un cliente
+      description: El servicio identificará al cliente mediante el id proporcionado en el path del servicio y actualizará su estatus de visita.
+      operationId: sellerCustomerScheduleClient
+      parameters:
+        - in: path
+          name: clientId
+          required: true
+          schema:
+            type: number
+      responses:
+        204:
+          description: Visita registrada
+  /rovianda/customer/reassign:
+    put:
+      tags:
+        - Clients
+      summary: Servicio de reasignacion de cliente a vendedor
+      description: El servicio se encargará de hacer la reasignacion de un cliente de un vendedor a otro.
+      operationId: customerReassign
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerReassignRequest"
+      responses:
+        204:
+          description: Cliente reasignado
+  /rovianda/customer/customer-count:
+    get:
+      tags: 
+        - Clients
+      summary: Servicio que obtiene el ultimo id numerico de registro de un cliente
+      description: Servicio para obtencion del ultimo id numerico de registro de un cliente para usar como consecutivo en formulario de registro de cliente.
+      operationId: customerCustomerCount
+      responses:
+        200:
+          description: Último id de registro de cliente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerCountResponse"
+  /rovianda/customer/client-key/{key}:
+    get:
+      tags:
+        - Clients
+      summary: Servicio para obtencion de detalles del un clinete
+      description: El servicio se encargará de obtener al cliente mediante la clave de cliente
+      operationId: customerClientKeyDetail
+      parameters:
+        - in: path
+          name: key
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Detalle del cliente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientModel"
+  /rovianda/customer/delete-client/{id}:
+    delete:
+      tags:
+        - Clients
+      summary: Servicio para eliminar lógicamente un cliente 
+      description: El servicio obtendrá el cliente mediante el id proporcionado en el request y eliminará el registro lógicamente cambiando su estatus de ACTIVE a INACTIVE.
+      operationId: customerDeleteClientById
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: number
+      responses:
+        204:
+          description: Cliente eliminado
+  /rovianda/update-client/{clientId}:
+    put:
+      tags:
+        - Clients
+      summary: Servicio para actualizar el código de SAE de un cliente mediante el id
+      description: El servicio se encargará de actualizar el código de SAE de un cliente mediante el id
+      operationId: updateClient
+      parameters:
+        - in: path
+          name: clientId
+          required: true
+          schema:
+            type: number
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateClientByIdRequest"
+      responses:
+        204:
+          description: Cliente actualziado
+  /rovianda/client/sae/search/{code}:
+    get:
+      tags:
+        - Clients
+      summary: Servicio para buscar un cliente en la base de datos de ASPEL mediante el código
+      description: El servicio buscará el registro de cliente en la base de datos de ASPEL sae mediante el código para su uso en un formulario de alta de clientes.
+      operationId: clientSaeSearchCode
+      parameters:
+        - in: path
+          name: code
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Detalle de cliente (Datos Aspel)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientSaeSearchCodeResponse"
+  /rovianda/customers-report/sellers:
+    get:
+      tags:
+        - Clients
+      summary: Servicio de clientes por vendedor
+      description: El Servicio recibirá como parametro query el id del vendedor y se generará el reporte de los clientes pertenecientes al mismo.
+      operationId: customerReportSellers
+      parameters:
+        - in: query
+          name: sellerId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: format
+          required: true
+          schema:
+            type: string
+            enum:
+              - pdf
+              - excel
+        - in: query
+          name: type
+          required: true
+          schema:
+            type: string
+            enum:
+              - NAME
+              - CODE_SAE
+              - CODE_SYSTEM
+        - in: query
+          name: hint
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Reporte de clientes por vendedor
+  /rovianda/customers/v2/register:
+    post:
+      tags:
+        - Clients
+      summary: Servicio de registro de clientes V2 (Para app Vendedor,Prevendedor Y Reparto)
+      description: El servicio se encarga de registrar clientes solo para las aplicaicones de vendedores, Prevendedores y de reparto (Solo clientes CONTADO).
+      operationId: customerV2Register
+      requestBody:
+        content:
+          application/json:
+            schema: 
+              $ref: "#/components/schemas/CustomerV2RegisterRequest"
+      responses:
+        200:
+          description: Cliente registrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerV2RegisterResponse"
+  /rovianda/customers/v2/register-arr:
+    post:
+      tags:
+        - Clients
+      summary: Servicio de registro de clientes V2 
+      description: El servicio recibirá un arreglo de registros de clientes para aquellos registros resagados en el modo offline, por lo que recibirá un listado de solicitudes.
+      operationId: customerV2RegisterArr
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerV2RegisterArrRequest"
+      responses:
+        200:
+          description: Arreglo de id de clientes registrados con relacion a su MobileId
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerV2RegisterArrResponse"
+  /rovianda/customer/v2/sychronization:
+    post:
+      tags:
+        - Clients
+      summary: Servicio de actualizacion de datos de clientes 
+      description: El servicio actualizará los datos de los clientes que se envien mediante el array disponible en el request del servicio.
+      operationId: customerV2Sync
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerV2SyncRequest"
+      responses:
+        200:
+          description: Clientes actualizados
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerV2RegisterArrResponse"
+  /rovianda/customers/v2/update:
+    post:
+      tags:
+        - Clients
+      summary: Servicio para actualizar los datos de un cliente V2 ya registrado y sincronizado en la aplicacion
+      description: El servicio se encargará de hacer la actualizacion de los datos de un cliente V2 registrado desde la app que ya cuenta con sincroniacion a sistema en la nube.
+      operationId: customerV2Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerV2UpdateRequest"
+      responses:
+        204:
+          description: Cliente actualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerV2UpdateResponse"
+  /rovianda/customer/visit:
+    post:
+      tags:
+        - Clients
+      summary: Servicio para registro de varias visitas
+      description: El servicio se encargará de registrar varias visitas de un cliente
+      operationId: customerVisit
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerVisitRequest"
+      responses:
+        200:
+          description: Id de cliente y fecha para registro de sincronizacion en telefono
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerVisitResponse"
+  /rovianda/customer/visits:
+    post:
+      tags:
+        - Clients
+      summary: Servicio de obtencion de listado de visitas
+      description: El servicio retornará el listado de las visitas de los clientes
+      operationId: customerVisits
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerVisitsRequest"
+      responses:
+        200:
+          description: Listado de visitas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerVisitsResponse"
+  /rovianda/customer/visits-report:
+      post:
+        tags:
+          - Clients
+        summary: Servicio para obtener el reporte en excel de visitas realizadas por un vendedor en cierta fecha.
+        description: El servicio recibirá el id del vendedor asi como la fecha en donde búscará las visitas realizadas y generará un reporte en excel.
+        operationId: customerVisitsReport
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerVisitsRequest"
+        responses:
+          200:
+            description: Reporte excel
+  /rovianda/drying:
+    post:
+      tags:
+        - Quality
+      summary: Servicio de registro de salidas de productos secos y uso en planta (DEPRECATED) (NUNCA SE USO)
+      description: El servicio se encargará de registrar etiquetas de salida de productos secos  en planta.
+      operationId: dryingRegistering
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DryingRequest"
+      responses:
+        201: 
+          description: Product seco registrado
+  /rovianda/drying/{id}:
+    get:
+      tags:
+        - Quality
+      summary: Servicio para obtencion de detalles de una etiqueta de productos secos (DEPRECATED) (NUNCA SE USO)
+      description: El servicio identificará la salida por medio del id proporcionado en el request y devolverá los detalles del mismo.
+      operationId: dryingGettingById
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: number
+      responses:
+        200:
+          description: Detalles de etiqueta de salida de producto seco
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DryingGettingByIdResponse"
+  /rovianda/entry/meat:
+    post:
+      tags:
+        - Quality
+      summary: Servicio de registro de entrada de carne
+      description: Servicio usado por a app de recepción para registro de entrada de carnicos
+      operationId: entreMeat
+      requestBody:
+        content:
+          application/json: 
+            schema:
+              $ref: "#/components/schemas/EntryMeatRequest"
+      responses:
+        201:
+          description: Entrada de carne registrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EntryMeatReponse"
+  /rovianda/entry/packing:
+    post:
+      tags:
+        - Quality
+      summary: Servicio para registrar la entrada empaques
+      description: Servicio para registrar la entrada de empaques
+      operationId: entryPackaging
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EntryPackagingRequest"
+      responses:
+        201:
+          description: Entrada de empaques registrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EntryPackingResponse"
+  /rovianda/entry/drief:
+    post:
+      tags:
+        - Quality
+      summary: Servicio para el registro de entrada de secos
+      description: El servicio se encargará de registrar la entrada de secos 
+      operationId: entreDrief
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EntryDriefRequest"
+      responses:
+        201:
+          description: Entrada de secos registrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EntryDriefResponse"
+  /rovianda/packing/status:
+    patch:
+      tags:
+        - Quality
+      summary: Servicio para actualizar el status de los registros de empaques
+      description: El servicio se encargará de actualizar el status de los registros de los empaques.
+      operationId: packingStatus
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PackingStatusRequest"
+      responses:
+        201:
+          description: Estatus actualizado.
+  /rovianda/packing/exit:
+    post:
+      tags:
+        - Quality
+      summary: Servicio para registrar una salida de empaques
+      description: El servicio registrará una salid de empaques con base a los parametros indicados en el request.
+      operationId: packingExit
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PackingExitRequest"
+      responses:
+        201:
+          description: Salida de empaques registrada
+  /rovianda/drief/exit:
+    post:
+      tags:
+        - Quality
+      summary: Servicio para registrar la salida de productos secos
+      description: El servicio registrará la salida de productos secos en bd según el request indicado.
+      operationId: driefExit
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DriefExitRequest"
+      responses:
+        201:
+          description: Salida de secos registrada
+  /rovianda/drief/status/{warehouseDriefId}:
+    patch:
+      tags:
+        - Quality
+      summary: Servicio para cambio de estatus de un registro de secos
+      description: El servicio actualizará el estatus de un registro de un secos
+      operationId: driefStatusWarehouseId
+      parameters:
+        - in: path
+          name: warehouseDriefId
+          required: true
+          schema:
+            type: number
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DriefStatusWarehouseRequest"
+      responses:
+        204:
+          description: Estatus actualizado
+  /rovianda/drief:
+    get:
+      tags:
+        - Quality
+      summary: Servicio para obtener  el listado de almacen de secos
+      description: El servicio devolverá el listado de todo el almacen de secos
+      operationId: driefList
+      responses:
+        200:
+          description: Listado de almacen de secos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DriefListRequest"
+  /rovianda/meat/status:
+    patch:
+      tags:
+        - Quality
+      summary: Servicio para actualizar el estatus de registros de carnicos
+      description: El servicio actualizará el estatus de un registro mediante el id y el status proporcionado en el request.
+      operationId: meatStatusUpdate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MeatStatusRequest"
+      responses:
+        204:
+          description: Estatus actualizado
+  /rovianda/meat/exit:
+    post:
+      tags:
+        - Quality
+      summary: Servicio para registrar una salida de carnicos
+      description: El servicio se encarga de registra la salida de los carnicos mediante los datos proporcionados en el request.
+      operationId: meatExit
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MeatExitRequest"
+      responses:
+        201:
+          description: Registro de salida de carnicos completado
+  /rovianda/meat/{fridgeId}:
+    get:
+      tags:
+        - Quality
+      summary: Servicio que obtiene el listado de todos los productos carnicos en un enfriado en especifico
+      description: El servicio identificará el enfriado mediante el id y procederá a retornar el listado de los productos carnicos diposnibles en dicho enfriador.
+      operationId: meatFridgeId
+      parameters:
+        - in: path
+          name: fridgeId
+          required: true
+          schema:
+            type: number
+        - in: query
+          name: status
+          required: true
+          schema:
+            type: string
+            enum:
+              - OPENED
+              - CLOSED
+              - PENDING
+      responses:
+        200:
+          description: Listado de productos carnicos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeatFridgeRequest"
+  /rovianda/meat/raw/{lotId}:
+    get:
+      tags:
+        - Quality
+      summary: Servicio para obtencion de carnicos por lote
+      description: El servicio obtendrá los registros de carnicos por lote
+      operationId: meatRawLot
+      parameters:
+        - in: path
+          name: lotId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: fridgeId
+          required: true
+          schema:
+            type: number
+      responses:
+        200:
+          description: Listado de productos carnicos por lote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeatRawLotResponse"
+  /rovianda/meat/lots/output:
+    get:
+      tags:
+        - Quality
+      summary: servicio de obtencion de salidas de carnicos 
+      description: El servicio obtendrá las salidas de carnico por estatus
+      operationId: meatLotOutput
+      parameters:
+        - in: query
+          name: status
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Listado de salidas de carnicos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeatLotsOutputResponse"
+  /rovianda/lot/meat/output:
+    get:
+      tags:
+        - Quality
+      summary: Servicio para  obtener el listad de salidas de carnicos no utilizados en proceso de preparacion de producto.
+      description: El servicio devolverá unicamente las salidas de carnicos que esten disponibles para usar en procesos de preparación.
+      operationId: lotMeatOutput
+      responses:
+        200:
+          description: Listado de salidas de carnicos listos para usar en proceso
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LotMeatOutputResponse"
+  /rovianda/quality/entrances/{loteId}:
+    get:
+      tags:
+        - Quality
+      summary: Servicio de obtencion de entradas de carnicos por lote
+      description: El servicio retornará el listado de las entradas de carnicos por lote indicado en el request.
+      operationId: qualityEntrancesLoteId
+      parameters:
+        - in: path
+          name: loteId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: date
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: page
+          required: true
+          schema:
+            type: number
+        - in: query
+          name: perPage
+          required: true
+          schema:
+            type: number
+      responses:
+        200:
+          description: Listado de entradas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QualityMeatEntranceLoteResponse"
+  /rovianda/quality/drief/entrances/{loteId}:
+    get:
+      tags:
+        - Quality
+      summary: Servicio de obtencion de entradas de secos por lote
+      description: El servicio retornará el listado de las entradas de secos por lote indicado en el request.
+      operationId: qualityEntranceDriefLoteId
+      parameters:
+        - in: path
+          name: loteId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: date
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: page
+          required: true
+          schema:
+            type: number
+        - in: query
+          name: perPage
+          required: true
+          schema:
+            type: number
+      responses:
+        200:
+          description: Listado de entradas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QualityDriefEntranceLoteResponse"
+  /rovianda/formulation:
+    post:
+      tags:
+        - Quality
+      summary: Servicio para registrar una formulacion
+      description: El servicio registrara una formulacion tomando en cuenta el lote de salida de carnicos indicado en el request.
+      operationId: formulation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FormulationRequest"
+      responses:
+        201:
+          description: Formulation registrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormulationResponse"
+  /rovianda/formulation-details/{formulationId}:
+    get:
+      tags:
+        - Quality
+      summary: Servicio de obtencion de detalles de formulación
+      description: El servicio obtendrá los detalles de una formuacion mediante el id
+      operationId: formulationDetailsFormulationId
+      parameters:
+        - in: path
+          name: formulationId
+          required: true
+          schema:
+            type: number
+      responses:
+        200:
+          description: Detalles de formulación
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormulationDetailsResponse"
+  /rovianda/formulation/product-rovianda/{productRoviandaId}:
+    get:
+      tags:
+        - Quality
+      summary: Servicio para obtener todas las formulaciones de ciertos productos
+      description: El servicio retornará todas las formulacinoes de productos para su registro en proceso.
+      operationId: formulationProductRovianda
+      parameters:
+        - in: path
+          name: productRoviandaId
+          required: true
+          schema:
+            type: number
+      responses:
+        200:
+          description: Listado de formulaciones
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormulationProductRoviandaResponse"
+  /rovianda/formulation/{rawMaterialId}:
+    get:
+      tags:
+        - Quality
+      summary: Servicio para obtener formulaciones por id de materia prima
+      description: El servicio retornará el listado de formulaciones por id de materia prima 
+      operationId: formulationRawMaterial
+      parameters:
+        - in: path
+          name: rawMaterialId
+          required: true
+          schema:
+            type: number
+      responses:
+        200:
+          description: Listado de formulaciones
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/formulationRawMaterialResponse"
+  /rovianda/lote/meat/process:
+    get:
+      tags:
+        - Quality
+      summary: Servicio para obtener todas las salidas de  carnicos por lote  por id de materia prima y estatus
+      description: El servicio retornará todas las salidas de  carnicos por lote que coincidan con la materia prima y con el estatus indicado en el request.
+      operationId: loteMeatProcess
+      parameters:
+        - in: query
+          name: rawMaterialId
+          required: true
+          schema:
+            type: number
+        - in: query
+          name: status
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Listado de salidas de lotes de carnicos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoteMeatProcessResponse"
+  /rovianda/ingredient-close/{processId}:
+    put:
+      tags:
+        - Quality
+      summary: Servicio para cerrar un proceso de tipo ingrediente
+      description: El servicio identificará al proceso mediante el id proporcionado en el request y actualizará el estatus del proceso a "INGREDIENT_USED" para que no aparezca en la aplicacion proceso al momento de generar un nuevo proceso de producto.
+      operationId: ingredientCloseProcess
+      parameters:
+        - in: path
+          name: processId
+          required: true
+          schema:
+            type: number
+      responses:
+        204:
+          description: Estatus del proceso actualizado
+  /rovianda/fridge:
+    post:
+      tags:
+        - Quality
+      summary: Servicio que registra un nuevo enfriador en sistema
+      description: El servicio se encargará de registrar un nuevo enfriado en sistema, en donde se almancenarán las entradas de carnicos.
+      operationId: registerFridge
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FridgeRequest"
+      responses:
+        201:
+          description: Enfriador registrado
+  /rovianda/fridges:
+    get:
+      tags:
+        - Quality
+      summary: Servicio de obtencion de listado de enfriadores.
+      description: El servicio retornará un arreglo de enfriadores.
+      operationId: getAllFridges
+      responses:
+        200:
+          description: Listado de enfriadores
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FridgesResponse"
+  /rovianda/fridge/{fridgeId}:
+    delete:
+      tags:
+        - Quality
+      summary: Servicio para eliminar un enfriador
+      description: El servicio identificará al enfriandor mediante el id proporcionado el request y hará un borrado fisico en base de datos.
+      operationId: deleteFridgeId
+      parameters:
+        - in: path
+          name: fridgeId
+          required: true
+          schema:
+            type: number
+      responses:
+        204:
+          description: Enfriador elimado
+  /rovianda/geocodingaddress:
+    post:
+      tags:
+        - Seller
+      summary: Servicio para obtener la direccion de longitud y latitud
+      description: EL servicio retornará la informacion de ubicacion mediante la longitud y latitud consultando a la API de Google Geocoding
+      operationId: geocodingAddress
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GeocodingAddressRequest"
+      responses:
+        200:
+          description: Direccion parseada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeoCodingAddressResponse"
+  /rovianda/getcurrentvisits/clients-location:
+    get:
+      tags:
+        - Seller
+      summary: Servicio de obtencion de visitas actuales de un vendedor con respecto a la localizacion del cliente.
+      description: El servicio retornará las posiciones de los clientes ya visitados por parte del vendedor en tiempo real.
+      operationId: getCurrentVisitsClietslocation
+      parameters:
+        - in: query
+          name: sellerUid
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: date
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        200:
+          description: Listado de posiciones
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetCurrentVisitsClientsLocationResponse"
+  
+components: 
+  schemas:
+    GetCurrentVisitsClientsLocationResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          clientId:
+            type: number
+          keyClient:
+            type: string
+          clientName:
+            type: string
+          latitude:
+            type: number
+          longitude:
+            type: number
+          visited:
+            type: boolean
+          mustVisited:
+            description: Banderá que indica si el cliente debio ser visitado ese dia o se visito por llamada del mismo.
+            type: boolean
+    GeoCodingAddressResponse:
+      type: object
+      properties:
+        cp:
+          type: string
+        municipality:
+          type: string
+        street:
+          type: string
+        suburb:
+          type: string
+    GeocodingAddressRequest:
+      type: object
+      properties:
+        longitude:
+          type: number
+        latitude:
+          type: number
+      
+    FridgesResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          fridge_id:
+            type: number
+          temp:
+            type: string
+          description:
+            type: string
+    FridgeRequest:
+      type: object
+      properties:
+        tempOfFridge:
+          type: number
+    LoteMeatProcessResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          lotId:
+            type: string
+          quantity:
+            type: number
+          outputId:
+            type: number
+    formulationRawMaterialResponse:
+      type: array
+      items:
+        $ref: "#/components/schemas/FormulationDetailsResponse"
+    FormulationProductRoviandaResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          formulationId:
+            type: number
+          productName:
+            type: string
+          lotDay:
+            type: string
+          createAt:
+            type: string
+            format: date
+    FormulationDetailsResponse:
+      type: object
+      properties:
+        id:
+          type: number
+        productRovianda:
+          type: object
+          properties:
+            id:
+              type: number
+            name:
+              type: string
+            code:
+              type: string
+            status:
+              type: string
+            imgS3:
+              type: string
+        temp:
+          type: string
+        date:
+          type: string
+        waterTemp:
+          type: string
+        verifit:
+          type: object
+          properties:
+            id:
+              type: string
+            saeKey:
+              type: string
+            name:
+              type: string
+            email:
+              type: string
+            job:
+              type: string
+            status:
+              type: string
+            cve:
+              type: string
+            token:
+              type: string
+            createdAt:
+              type: string
+              format: date
+        make:
+          type: object
+          properties:
+            id:
+              type: string
+            saeKey:
+              type: string
+            name:
+              type: string
+            email:
+              type: string
+            job:
+              type: string
+            status:
+              type: string
+            cve:
+              type: string
+            token:
+              type: string
+            createdAt:
+              type: string
+              format: date
+        status:
+          type: string
+        defrost:
+          type: array
+          items:
+            type: object
+            properties: 
+              defrostFormulationId:
+                type: number
+              lotMeat:
+                type: string
+              defrost:
+                type: object
+                properties:
+                  defrostId:
+                    type: number
+                  weight:
+                    type: string
+                  temp:
+                    type: string
+                  entranceHour:
+                    type: string
+                  outputHour:
+                    type: string
+                  dateInit:
+                    type: string
+                  dateEnd:
+                    type: string
+                  status:
+                    type: string
+        lotDay:
+          type: string
+        typeFormulation:
+          type: string
+          enum:
+            - PRODUCT
+            - INGREDIENT
+        ingredients_process_ids:
+          type: string
+    FormulationResponse:
+      type: object
+      properties:
+        formulationId:
+          type: number
+    FormulationRequest:
+      type: object
+      properties:
+        productRoviandaId:
+          type: number
+        temperature:
+          type: string
+        temperatureWater:
+          type: string
+        verifitId:
+          type: string
+        date:
+          type: string
+          format: date
+        makeId:
+          type: string
+        lotsDefrost:
+          type: array
+          items:
+            type: object
+            properties:
+              lotId:
+                type: string
+              defrostId:
+                type: number
+        ingredient:
+          type: array
+          items:
+            type: object
+            properties:
+              ingredientId:
+                type: number
+              lotRecordId:
+                type: number
+        processNormal:
+          type: boolean
+        processIngredient:
+          type: boolean
+        processIngredients:
+          type: array
+          items:
+            type: object
+            properties:
+              processId:
+                type: number
+              dateEnded:
+                type: string
+                format: date
+              productName:
+                type: string
+              assigned:
+                type: boolean
+    QualityDriefEntranceLoteResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          proveedor:
+            type: string
+          loteProveedor:
+            type: string
+          date:
+            type: string
+            format: date
+          quantity:
+            type: number
+          product:
+            type: object
+            properties:
+              id:
+                type: number
+              description:  
+                type: string
+              type:
+                type: string
+              mark:
+                type: string
+              variant:
+                type: string
+              presentation:
+                type: string
+              category:
+                type: string
+              state:
+                type: boolean
+              
+    QualityMeatEntranceLoteResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: number
+          proveedor:
+            type: string
+          loteProveedor:
+            type: string
+          createdAt:
+            type: string
+          rawMaterial:
+            type: string
+          loteInterno:
+            type: string
+          weight:
+            type: object
+            properties:
+              value:
+                type: string
+              observations:
+                type: string
+              accepted:
+                type: boolean
+          temperature:
+            type: object
+            properties:
+              value:
+                type: string
+              descriptions:
+                type: string
+              accepted:
+                type: boolean
+          strangeMaterial:
+            type: object
+            properties:
+              observations: 
+                type: string
+              accepted:
+                type: boolean
+          expiration:
+            type: object
+            properties:
+              observations:
+                type: string
+              accepted:
+                type: boolean
+          packing:
+            type: object
+            properties:
+              observations:
+                type: string
+              accepted:
+                type: boolean
+          odor:
+            type: object
+            properties:
+              observations:
+                type: string
+              accepted:
+                type: boolean
+          color:
+            type: object
+            properties:
+              observations:
+                type: string
+              accepted:
+                type: boolean
+          transport:
+            type: object
+            properties:
+              observations:
+                type: string
+              accepted:
+                type: boolean
+          texture:
+            type: object
+            properties:
+              observations:
+                type: string
+              accepted:
+                type: boolean
+          fridge:
+            type: object
+            properties:
+              fridgeId:
+                type: number
+              observations:
+                type: string
+              accepted:
+                type: boolean
+          slaughterDate:
+            type: object
+            properties:
+              value:
+                type: string
+              observations:
+                type: string
+              accepted:
+                type: string
+          job:
+            type: string
+          photo:
+            type: object
+            properties:
+              fileId:
+                type: number
+              url:
+                type: string
+          qualityInspector:
+            type: object
+            properties:
+              id:
+                type: string
+              saeKey:
+                type: string
+              name:
+                type: string
+              email:
+                type: string
+              job:
+                type: string
+              status:
+                type: string
+              cve:
+                type: string
+              token:
+                type: string
+              createdAt:
+                type: string
+                format: date
+    LotMeatOutputResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          outputsCoolingId:
+            type: number
+          lot:
+            type: string
+    MeatLotsOutputResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          lotId:
+            type: string
+          quantity:
+            type: string
+          outputId:
+            type: string
+          name:
+            type: string
+    MeatRawLotResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          rawMaterialId:
+            type: string
+          status:
+            type: string
+          nameMaterial: 
+            type: string
+          lotProveedor:
+            type: string
+    MeatFridgeRequest:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: number
+          rawMaterial:
+            type: string
+          fridge:
+            type: object
+            properties:
+              fridgeId:
+                type: number
+              temp:
+                type: string
+    MeatExitRequest:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        loteId:
+          type: string
+        quantity:
+          type: string
+        observations:
+          type: string
+        materialId:
+          type: number
+    MeatStatusRequest:
+      type: object
+      properties:
+        loteId:
+          type: string
+        fridgeId:
+          type: number
+        date:
+          type: string
+          format: date
+        status:
+          type: string
+          enum:
+            - OPENED
+            - CLOSED
+            - PENDING
+        materialId:
+          type: number
+    DriefListRequest:
+      type: array
+      items:
+        type: object
+        properties:
+            warehouseDriefId:
+              type: number
+            loteProveedor:
+              type: string
+            quantity:
+              type: number
+    DriefStatusWarehouseRequest:
+      type: object
+      properties:
+        loteId:
+          type: number
+        productId:
+          type: number
+        date:
+          type: string
+          format: date
+        status:
+          type: string
+          enum:
+            - OPENED
+            - CLOSED
+            - PENDING
+    DriefExitRequest:
+      type: object
+      properties:
+        productId:
+          type: number
+        loteId:
+          type: string
+        observations:
+          type: string
+        date:
+          type: string
+    PackingExitRequest:
+      type: object
+      properties:
+        loteId:
+          type: string
+        productId:
+          type: number
+        quantity:
+          type: number
+        name:
+          type: string
+        date:
+          type: string
+          format: date
+    PackingStatusRequest:
+      type: object
+      properties:
+        warehouseId:
+          type: number
+        date:
+          type: string
+          format: date
+        status:
+          type: string
+          enum:
+            - OPENED
+            - CLOSED
+            - PENDING
+    EntryDriefResponse:
+      type: object
+      properties:
+        driefId:
+          type: number
+    EntryDriefRequest:
+      type: object
+      properties:
+        proveedorid:
+          type: number
+        lotProveedor:
+          type: string
+        productId:
+          type: string
+        date:
+          type: string
+          format: date
+        quantity:
+          type: string
+        quality:
+          type: string
+        expiration:
+          type: string
+        strangeMaterial:
+          type: string
+        transport:
+          type: string
+        paking:
+          type: boolean
+        odor:
+          type: boolean
+        texture:
+          type: boolean
+        weight:
+          type: boolean
+        color:
+          type: boolean
+        isPz:
+          type: boolean
+        isBox:
+          type: boolean
+        observations:
+          type: string
+        makeId:
+          type: string
+    EntryPackingResponse:
+      type: object
+      properties:
+        packingId:
+          type: number
+    EntryPackagingRequest:
+      type: object
+      properties:
+        proveedor:
+          type: string
+        lotProveedor:
+          type: string
+        productId:
+          type: string
+        date:
+          type: string
+        quantity:
+          type: string
+        quality:
+          type: string
+        strageMaterial:
+          type: string
+        transport:
+          type: boolean
+        isPz:
+          type: boolean
+        isBox:
+          type: boolean
+        paking:
+          type: boolean
+        observations:
+          type: string
+        makeId:
+          type: number
+        verifitId:
+          type: string
+    EntryMeatReponse:
+      type: object
+      properties:
+        meatId:
+          type: number
+    EntryMeatRequest:
+      type: object
+      properties:
+        proveedor:
+          type: string
+        lotProveedor:
+          type: string
+        creaatedAt:
+          type: string
+          format: date
+        rawMaterial:
+          type: string
+        weight:
+          type: object
+          properties:
+            value:
+              type: string
+            observations:
+              type: string
+            accepted:
+              type: string
+        temperature:
+          type: object
+          properties:
+            value:
+              type: string
+            observations:
+              type: string
+            accepted:
+              type: string
+        strageMaterial:
+          type: object
+          properties:
+            observations:
+              type: string
+            accepted:
+              type: string
+        expiration:
+          type: object
+          properties:
+            observations:
+              type: string
+            accepted:
+              type: string
+        packing:
+          type: object
+          properties:
+            observations:
+              type: string
+            accepted:
+              type: string
+        odor:
+          type: object
+          properties:
+            observations:
+              type: string
+            accepted:
+              type: string
+        color:
+          type: object
+          properties:
+            observations:
+              type: string
+            accepted:
+              type: string
+        transport:
+          type: object
+          properties:
+            observations:
+              type: string
+            accepted:
+              type: string
+        texture:
+          type: object
+          properties:
+            observations:
+              type: string
+            accepted:
+              type: string
+        fridge:
+          type: object
+          properties:
+            fridgeId:
+              type: number
+            observations:
+              type: string
+            accepted:
+              type: string
+        slaughterDate:
+          type: object
+          properties:
+            value:
+              type: string
+            observations:
+              type: string
+            accepted:
+              type: string
+        photo:
+          type: string
+        job:
+          type: string
+        qualityInspector:
+          type: string
+        lotInternal:  
+          type: string
+    DryingGettingByIdResponse:
+      type: object
+      properties:
+        productId:
+          type: number
+        lotId:
+          type: string
+        dateEntrance:
+          type: string
+          format: date
+        dateExit:
+          type: string
+          format: date
+    DryingRequest:
+      type: object
+      properties:
+        productId:
+          type: number
+        lotId:
+          type: string
+        dateEntrance:
+          type: string
+          format: date
+        dateOutput:
+          type: string
+          format: date
+    CustomerVisitsResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          amount:
+            type: number
+          code:
+            type: string
+          visitId:
+            type: number
+          clientName:
+            type: string
+          visited:
+            type: boolean
+          withSale:
+            type: boolean
+          observations:
+            type: string
+          latitude:
+            type: number
+          longitude:
+            type: number
+    CustomerVisitsRequest:
+      type: object
+      properties:
+        sellerId:
+          type: string
+        date:
+          type: string
+          format: date
+    CustomerVisitResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          clientId:
+            type: number
+          date:
+            type: string
+            format: date
+    CustomerVisitRequest:
+      type: array
+      items:
+        type: object
+        properties:
+          date:
+            type: string
+            format: date
+          clientId:
+            type: number
+          observations:
+            type: string
+          visited:
+            type: boolean
+          amount:
+            type: number
+    CustomerV2UpdateRequest:
+      type: array
+      items:
+        type: object
+        properties:
+          clientId:
+            type: number
+          clientKey:
+            type: string
+          clientName:
+            type: string
+          clientStreet:
+            type: string
+          clientSuburb:
+            type: string
+          clientMunicipality:
+            type: string
+          clientCp:
+            type: string
+          clientExtNumber:
+            type: string
+          clientContact:
+            type: string
+          clientPhoneNumber:
+            type: string
+          clienteReferencie:
+            type: string
+          monday:
+            type: boolean
+          tuesday:
+            type: boolean
+          wednesday:
+            type: boolean
+          thursday:
+            type: boolean
+          friday:
+            type: boolean
+          saturday:
+            type: boolean
+          sunday:
+            type: boolean
+    CustomerV2UpdateResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          clientId:
+            type: number
+    CustomerV2SyncRequest:
+      type: array
+      items:
+        $ref: "#/components/schemas/CustomerV2RegisteredRequest"
+    CustomerV2RegisterArrResponse:
+      type: array
+      items:
+        $ref: "#/components/schemas/CustomerV2RegisterResponse"
+    CustomerV2RegisterArrRequest:
+      type: array
+      items:
+        $ref: "#/components/schemas/CustomerV2RegisterRequest"
+    CustomerV2RegisterResponse:
+      type: object
+      properties:
+        clientId:
+          type: number
+        clientMobileId:
+          type: number
+    CustomerV2RegisteredRequest:
+      type: object
+      properties:
+        clientMobileId:
+          type: number
+        clientRovId:
+          type: number
+        clientName:
+          type: string
+        clientType:
+          type: string
+        clientStreet:
+          type: string
+        clientSuburb:
+          type: string
+        clientMunicipality:
+          type: string
+        clientCp:
+          type: string
+        clientContact:
+          type: string
+        clientPhoneNumber:  
+          type: string
+        clientReference:
+          type: string
+        clientExtNumber:
+          type: string
+        clientSellerUid:
+          type: string
+        isTemp:
+          type: boolean
+        monday:
+          type: boolean
+        tuesday:
+          type: boolean
+        wednesday:
+          type: boolean
+        thursday:
+          type: boolean
+        friday:
+          type: boolean
+        saturday:
+          type: boolean
+        sunday:
+          type: boolean
+        longitude:
+          type: boolean
+        latitude:
+          type: boolean
+    CustomerV2RegisterRequest:
+      type: object
+      properties:
+        clientMobileId:
+          type: number
+        clientName:
+          type: string
+        clientType:
+          type: string
+        clientStreet:
+          type: string
+        clientSuburb:
+          type: string
+        clientMunicipality:
+          type: string
+        clientCp:
+          type: string
+        clientContact:
+          type: string
+        clientPhoneNumber:  
+          type: string
+        clientReference:
+          type: string
+        clientExtNumber:
+          type: string
+        clientSellerUid:
+          type: string
+        isTemp:
+          type: boolean
+        monday:
+          type: boolean
+        tuesday:
+          type: boolean
+        wednesday:
+          type: boolean
+        thursday:
+          type: boolean
+        friday:
+          type: boolean
+        saturday:
+          type: boolean
+        sunday:
+          type: boolean
+        longitude:
+          type: boolean
+        latitude:
+          type: boolean
+    ClientSaeSearchCodeResponse:
+      type: object
+      properties:
+        CLAVE:
+          type: string
+        STATUS: 
+          type: string
+        NOMBRE:
+          type: string
+        RFC:
+          type: string
+        CALLE:
+          type: string
+        NUMINT:
+          type: string
+        NUMEXT:
+          type: string
+        CRUZAMIENTOS:
+          type: string
+        CRUZAMIENTOS2:
+          type: string
+        COLONIA:
+          type: string
+        CODIGO:
+          type: string
+        LOCALIDAD:
+          type: string
+        MUNICIPIO:
+          type: string
+        ESTADO:
+          type: string
+        PAIS:
+          type: string
+        NACIONALIDAD:
+          type: string
+        REFERDIR:
+          type: string
+        TELEFONO: 
+          type: string
+        CLASIFIC:
+          type: string
+        FAX:
+          type: string
+        PAG_WEB:
+          type: string
+        CURP:
+          type: string
+        CVE_ZONA:
+          type: string
+        IMPRIR:
+          type: string
+        MAIL:
+          type: string
+        NIVELSEC:
+          type: string
+        ENVIOSILEN:
+          type: string
+        MAILPRED:
+          type: string
+        DIAREV:
+          type: string
+        DIAPAGO:
+          type: string
+        CON_CREDITO:
+          type: string
+        DIASCRED:
+          type: number
+        LIMCRED:
+          type: number
+        SALDO:
+          type: number
+        LISTA_PREC:
+          type: string
+        CVE_BITA:
+          type: string
+        ULT_PAGOD:
+          type: string
+        ULT_PAGOM:
+          type: number
+        ULT_PAGOF:
+          type: string
+        DESCUENTO:
+          type: string
+        ULT_VENTAD:
+          type: string
+        ULT_COMPM:
+          type: string
+        FCH_ULTCOM:
+          type: string
+        VENTAS:
+          type: number
+        CVE_VEND:
+          type: string
+        CVE_OBS:
+          type: number
+        TIPO_EMPRESA:
+          type: string
+        MATRIZ:
+          type: string
+        PROSPECTO:
+          type: string
+        CALLE_ENVIO:
+          type: string
+        NUMINT_ENVIO:
+          type: string
+        NUMEXT_ENVIO:
+          type: string
+        CRUZAMIENTOS_ENVIO:
+          type: string
+        CRUZAMIENTOS_ENVIO2:
+          type: string
+        COLONIA_ENVIO:
+          type: string
+        LOCALIDAD_ENVIO:
+          type: string
+        MUNICIPIO_ENVIO:
+          type: string
+        ESTADO_ENVIO:
+          type: string
+        PAIS_ENVIO:
+          type: string
+        CODIGO_ENVIO:
+          type: string
+        CVE_ZONA_ENVIO:
+          type: string
+        REFERENCIA_ENVIO:
+          type: string
+        CUENTA_CONTABLE:
+          type: string
+        ADDENDAF:
+          type: string
+        ADDENDAD:
+          type: string
+        NAMESPACE:
+          type: string
+        METODODEPAGO:
+          type: string
+        NUMCTAPAGO:
+          type: string
+        MODELO:
+          type: string
+        DES_IMPU1:
+          type: string
+        DES_IMPU2:
+          type: string
+        DES_IMPU3:
+          type: string
+        DES_IMPU4:
+          type: string
+        DES_PER:
+          type: string
+        LAT_GENERAL:
+          type: number
+        LON_GENERAL:
+          type: number
+        LAT_ENVIO:
+          type: string
+        LON_ENVIO:
+          type: string
+        UUID:
+          type: string
+        VERSION_SINC:
+          type: string
+        USO_CFDI:
+          type: string
+        CVE_PAIS_SAT:
+          type: string
+        NUMIDREGFISCAL:
+          type: string
+        FORMADEPAGOSAT:
+          type: string
+        ADDENDAG:
+          type: string
+        ADDENDAE:
+          type: string
+        ADDENDAT:
+          type: string
+        UBICACION_R:
+          type: string
+        REG_FISC:
+          type: string
+        VAL_RFC:
+          type: string
+        NOMBRECOMERCIAL:
+          type: string
+    UpdateClientByIdRequest:
+      type: object
+      properties:
+        code:
+          type: string
+    CustomerCountResponse:
+      type: object
+      properties:
+        clientCode:
+          type: number
+    CustomerReassignRequest:
+      type: object
+      properties:
+        sellerUid:
+          type: string
+        clientId:
+          type: number
+    SellerCustomerScheduleResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          client:
+            $ref: "#/components/schemas/ClientModel"
+          visitedStatus:
+            type: string
+            enum:
+              - PENDING
+              - INVISIT
+              - VISITED
+          clientVisitId:
+            type: number
+          time:
+            type: string
+    SellerCustomerCreateRequest:
+      type: object
+      properties:
+        keyClient:
+          type: string
+        name:
+          type: string
+        rfc:
+          type: string
+        saleUid:
+          type: string
+        addressClient:
+          type: object
+          properties:
+            street:
+              type: string
+            extNumber:
+              type: number
+            intNumber:
+              type: number
+            intersectionOne:
+              type: string
+            intersectionTwo:
+              type: string
+            suburb:
+              type: string
+            location:
+              type: string
+            reference:
+              type: string
+            population:
+              type: string
+            cp:
+              type: number
+            state:
+              type: string
+            municipality:
+              type: string
+            nationality:
+              type: string
+        daysVisited:
+          type: object
+          properties:
+            monday:
+              type: boolean
+            tuesday:
+              type: boolean
+            wednesday:
+              type: boolean
+            thursday:
+              type: boolean
+            friday:
+              type: boolean
+            saturday:
+              type: boolean
+            sunday:
+              type: boolean
+        typeClient:
+          type: number
+    CustomerCreateRequest:
+      type: object
+      properties:
+        clientCode:
+          type: string
+        clientCodeAssigned:
+          type: string
+        clientName:
+          type: string
+        clientType:
+          type: string
+        clientCredit:
+          type: number
+        clientCurrentCredit:
+          type: number
+        clientRfc:
+          type: string
+        clientStreet:
+          type: string
+        clientSuburb:
+          type: string
+        clientMunicipality:
+          type: string
+        clientLocality:
+          type: string
+        clientCp:
+          type: string
+        clientExtNumber:
+          type: string
+        clientSeller:
+          type: string
+        clientState:
+          type: string
+        clientNationality:
+          type: string
+        monday:
+          type: boolean
+        tuesday:
+          type: boolean
+        wednesday:
+          type: boolean
+        thursday:
+          type: boolean
+        friday:
+          type: boolean
+        saturday:
+          type: boolean
+        sunday:
+          type: boolean
+    UpdateCheeseRequest:  
+      type: object
+      properties:
+        code:
+          type: string
+        quantity:
+          type: number
+    CheeseProductsList:
+      type: array
+      items:
+        type: object
+        properties:
+          code:
+            type: string
+          name:
+            type: string
+          quantity:
+            type: string
+    ProductCheeseRegisterRequest:
+      type: object
+      properties:
+        code:
+          type: string
+    CatalogPaymentsSATResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          cPaymentShape:
+            type: string
+          description:
+            type: string
+    CatalogCDFIResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: number
+          cCFDIUse:
+            type: string
+          description:
+            type: string
+    UserPreSaleUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        password:
+          type: string
+        folio:
+          type: string
+        jobDescription:
+          type: string
+        sellers:
+          type: array
+          items:
+            type: string
+    UserPreSaleDetailsResponse:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        warehouseId:
+          type: number
+        jobDescription:
+          type: string
+        rol:
+          type: string
+        keySae:
+          type: string
+        folio:
+          type: string
+        sellers:
+          type: array
+          items:
+            type: string
+    UserPresaleRegisterRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        warehouseId:
+          type: string
+        jobDescription:
+          type: string
+        rol:
+          type: string
+        folio:
+          type: string
+        sellers:
+          type: array
+          description: Ids de los vendedores de los cuales atendera el prevendedor
+          items:
+            type: string
+    UserSellerUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        password:
+          type: string
+        warehouseId:
+          type: string
+        jobDescription:
+          type: string
+        keySae:
+          type: string
+        folio:
+          type: string
+    UserSellerRegisterRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        warehouseId:
+          description: Id de almacen SAE
+          type: number
+        jobDescription: 
+          type: string
+        rol:
+          type: string
+        keySae:
+          type: string
+        folio:
+          description: Folio para venta
+          type: string
+    SimpleUserDetailsResponse:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        rol:
+          type: string
+        jobDescription:
+          type: string
+    UserRegisterRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        rol:
+          type: string
+        jobDescription: 
+          type: string
+    UserPasswordRequest:
+      type: object
+      properties:
+        uid:
+          type: string
+        password:
+          type: string
+    AdminProductRegistPreRegister:
+      type: object
+      properties:
+        name: 
+          type: string
+        code:
+          type: string
+        codeAltern:
+          type: string
+        price:
+          type: number
+        weight:
+          type: number
+        type: 
+          type: string
+        quantityByPresentation:
+          type: number
+        uniMed:
+          type: string
+          enum:
+            - PZ
+            - KG
+        esqKey:
+          type: number
+        esqDescription:
+          type: string
+    AdminProductUpdatePreRegister:
+      type: object
+      properties:
+        productId: 
+          type: number
+        name: 
+          type: string
+        code:
+          type: string
+        codeAltern:
+          type: string
+        price:
+          type: number
+        weight:
+          type: number
+        type: 
+          type: string
+        quantityByPresentation:
+          type: number
+        uniMed:
+          type: string
+          enum:
+            - PZ
+            - KG
+        esqKey:
+          type: number
+        esqDescription:
+          type: string
+    AdminProductFindPreregisterResponse:
+      type: object
+      properties:
+        productIdInSystem:
+          type: number
+        name:
+          type: string
+        price:
+          type: number
+        keySae:
+          type: string
+        uniMed:
+          type: string
+        esqKey:
+          description: Id de esquema de impuesto
+          type: number
+        descriptionImp:
+          description: Descripción del tipo de impuesto del producto
+          type: string
+    AdminProductsCatalogRequest:
+      type: object
+      properties:
+        hint:
+          type: string
+    AdminProductCatalogResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: number
+          product:
+            type: string
+          presentation:
+            type: string
+          price:
+            type: number
+          weight:
+            type: number
+          keySae: 
+            type: string
+          keyAltern:
+            type: string
+          type:
+            type: string
+            enum:
+              - NORMAL
+              - QUESOS
+              - ABARROTES
+          uniMed:
+            type: string
+            enum:
+              - PZ
+              - KG
+          quantityByPresentation:
+            type: number
+          esqKey:
+            description: Id de esquema de impuesto impuesto por AspelSAE
+            type: number
+          esqDescription:
+            type: string
+    ListCancelationsDevolutionsRequest:
+      type: array
+      items:
+        type: object
+        properties:
+          requestId:
+            type: number
+          sellerName:
+            type: string
+          folio:
+            type: string
+          date:
+            type: string
+            format: date
+          saleId:
+            type: number
+          createAt:
+            type: string
+            format: daate
+          status:
+            type: string
+            
+    SetTokenUIDRequest:
+      type: object
+      properties:
+        token:
+          description: "Puede ir vacio para casos de eliminar el token relacionado"
+          type: string
+    ReportSalesTypesRequest:
+      type: object
+      properties:
+        format:
+          type: string
+          enum:
+            - pdf
+            - excel
+        type:
+          type: string
+          enum:
+            - OMITED
+            - CANCELED
+        sellers:
+          type: array
+          items:
+            type: string
+    ListIdsClients:
+      type: array
+      items:
+        type: number
+    DeliverRegisterDebtResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          folioPreSale:
+            type: string
+    DeliverRegisterDebt:
+      type: array
+      items:
+        type: object
+        properties:
+          createdAt:
+            type: string
+            format: date
+          folioSale:
+            type: string
+          payedType:
+            type: string
+            enum:
+              - EFECTIVO 
+              - TRANSFERENCIA
+              - CHEQUE
+    FoliosPresale:
+      type: array
+      items:
+        type: object
+        properties:
+          folioPreSale:
+            type: string
+    ListPreSalesToUpdate:
+      type: object
+      properties:
+        folioPresale:
+          type: string
+        folioForSale:
+          type: string
+        typePayment:
+          type: string
+          enum:
+            - EFECTIVO
+            - TRANSFERENCIA
+            - CHEQUE
+        dateSolded:
+          type: string
+          format: date
+        modificated:
+          type: boolean
+        modifications:
+          type: array
+          items:
+            type: object
+            properties:
+              presentationId:
+                type: number
+              quantity:
+                type: number
+              amount:
+                type: number
+    SincronizationInfoPreseller:
+      type: object
+      properties:
+        clients:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClientModel"
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductModel"
+        uid:
+          type: string
+        count: 
+          type: number
+        nomenclature:
+          type: string
+        name:
+          type: string
+        lastSincronization:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        preSalesOfDay:
+          type: array
+          items:
+            $ref: "#/components/schemas/SaleModel"
+        debts:
+          type: array
+          items:
+            $ref: "#/components/schemas/SaleModel"
+    ProductModel:
+      type: object
+      properties:
+        productId:
+          type: number
+        productKey:
+          type: string
+        name:
+          type: string
+        presentationName:
+          type: string
+        uniMed:
+          type: string
+        price:
+          type: number
+        secondPrice:
+          type: number
+        quantity:
+          type: number
+        presentationId:
+          type: number
+        weightOriginal:
+          type: number
+        esqKey:
+          type: string
+        esqDescription:
+          type: string 
+    SaleModel:
+      type: object
+      properties:
+        folio:
+          type: string
+        saleId:
+          type: number
+        sellerId:
+          type: string
+        keyClient:
+          type: string
+        payed:
+          type: boolean
+        amount:
+          type: number
+        credit:
+          type: number
+        typeSale:
+          type: string
+          enum:
+            - EFECTIVO
+            - TRANSFERENCIA
+            - CHEQUE
+            - CREDITO
+        clientName:
+          type: string
+        date:
+          type: string
+          format: date
+        statusStr:
+          type: string
+          enum:
+            - ACTIVE
+            - DELETED
+            - CANCELED
+        status:
+          type: boolean
+        clientId:
+          type: number
+        products:
+          type: array
+          items:
+            type: object
+            properties:
+              subSaleAppId:
+                type: number
+              subSaleServerId:
+                type: number
+              productKey:
+                type: string
+              quantity:
+                type: number
+              price:
+                type: number
+              weightStandard:
+                type: number
+              productName:
+                type: string
+              productPresentationType:
+                type: string
+              presentationId:
+                type: number
+              productId:
+                type: number
+              uniMed:
+                type: string
+              esqKey:
+                type: string
+              esqDescription:
+                type: string
+        canceledAutorized:
+          type: boolean
+    ClientModel:
+      type: object
+      properties:
+        clientId:
+          type: number
+        keyClient:
+          type: number
+        sellerOwner:
+          type: string
+        name:
+          type: string
+        type: 
+          type: string
+        currentCreditUsed:
+          type: number
+        creditLimit:
+          type: number
+        monday:
+          type: boolean
+        tuesday:
+          type: boolean
+        wednesday:
+          type: boolean
+        thursday:
+          type: boolean
+        friday:
+          type: boolean
+        saturday:
+          type: boolean
+        sunday:
+          type: boolean
+        cp:
+          type: string
+        modified:
+          type: boolean
+        street:
+          type: string
+        municipallity:
+          type: string
+        suburb:
+          type: string
+        extNum:
+          type: number
+        latitude:
+          type: number
+        longitude:
+          type: number
+        status:
+          type: string
+        phone:
+          type: string
+        reference:
+          type: string
+        contact:
+          type: string
+    SincronizationInfo:
+      type: object
+      properties:
+        clients:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClientModel"
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductModel"
+        uid:
+          type: string
+        count:
+          type: number
+        nomenclature:
+          type: string
+        name:
+          type: string
+        lastSincronization:
+          type: string
+          format: date
+        email:
+          type: string
+        password:
+          type: string
+        debts:
+          type: array
+          items:
+            $ref: "#/components/schemas/SaleModel"
+        salesOfDay:
+          type: array
+          items:
+            $ref: "#/components/schemas/SaleModel"
+        devolutionsRequest:
+          type: array
+          items:
+            $ref: "#/components/schemas/DevolutionSellerRequest"
+        devolutionsSubSales:
+          type: array
+          items:
+            $ref: "#/components/schemas/DevolutionSubSale"
+    DevolutionSubSale:
+      type: object
+      properties:
+        devolutionOldSubSaleId:
+          type: number
+        quantity: 
+          type: number
+        loteId:
+          type: string
+        amount:
+          type: number
+        createAt:
+          type: string
+          format: date
+        saleId:
+          type: number
+        productId:
+          type: number
+        presentationId:
+          type: number
+        type:
+          type: string
+        subSaleIdentifier:
+          type: number
+        devolutionRequestId:
+          type: number
+    DevolutionSellerRequest:
+      type: object
+      properties:
+        devolutionSellerRequestId:
+          type: number
+        sellerId:
+          type: string
+        saleId:
+          type: number
+        folio:
+          type: string
+        createAt:
+          type: string
+          format: date
+        status:
+          type: string
+        dateAttended:
+          type: string
+          format: date
+        typeDevolution:
+          type: string
+        observations:
+          type: string
+        viewed:
+          type: boolean
+        devolutionAppRequest:
+          type: number
+        adminId:
+          type: string
+    GetMetricsRankingSellers:
+      type: array
+      items:
+        type: object
+        properties:
+          amount:
+            type: number
+          weight:
+            type: number
+          name:
+            type: string
+          sellerId:
+            type: string
+    RankingAProductResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          amount:
+            type: number
+          quantity:
+            type: number
+          sellerId:
+            type: string
+          name:
+            type: string
+    ListGeneralSalesMetrics:
+      type: array
+      items:
+        type: object
+        properties:
+          amount:
+            type: number
+          quantity:
+            type: number
+          weight:
+            type: number
+          typeProduct:
+            type: string
+          name:
+            type: string
+          typePresentation:
+            type: string
+          presentationId:
+            type: number
+          price:
+            type: number
+          uniMed:
+            type: string
+            enum:
+              - KG
+              - Pz
+          comparation:
+            type: string
+    GeneralSalesReportRequest:
+      type: object
+      properties:
+        type: 
+          type: string
+          enum:
+            - day
+            - week
+            - month
+            - year
+        clientsIds:
+          description: Ids de clientes a incluir
+          type: array
+          items:
+            type: number
+        sellersIds:
+          description: Ids de vendedores a incluir
+          type: array
+          items:
+            type: string
+        productsIds:
+          description: Ids de productos a incluir
+          type: array
+          items:
+            type: number
+    ListOfAllProducts:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: number
+          name:
+            type: string
+          typePresentation:
+            type: string
+          keySae:
+            type: string
+    
+    AllClientListResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: number
+          idAspel:
+            type: number
+          typeClient:
+            type: string
+          keyClient:
+            type: number
+          name:
+            type: string
+          phone:
+            type: string
+          credit:
+            type: number
+          cfdi:
+            type: string
+          paymentSat:
+            type: string
+          currentCredit:
+            type: number
+          daysCredit:
+            type: number
+          dayCharge:
+            type: number
+          address:
+            type: object
+            properties:
+              id:
+                type: number
+              street:
+                type: string
+              extNumber:
+                type: number
+              intNumber:
+                type: number
+              intersectionOne:
+                type: string
+              intersectionTwo:
+                type: string
+              suburb: 
+                type: string
+              location: 
+                type: string
+              cp:
+                type: string
+              state:
+                type: string
+              municipality:
+                type: string
+              nationality:
+                type: string
+          rfc:
+            type: string
+          curp:
+            type: string
+          hasDebts:
+            type: boolean
+          status:
+            type: string
+          keySaeNew:
+            type: string
+          modified:
+            type: string
+          longitude:
+            type: number
+          latitude:
+            type: number
+          clientMobileId:
+            type: number
+          reference:
+            type: string
+          contact:
+            type: string
+    SellerClientRegisterRequest:
+      type: object
+      properties:
+        keyClientId:
+          type: number
+        name:
+          type: string
+        street:
+          type: string
+        suburb:
+          type: string
+        cp:
+          type: string
+        state:
+          type: string
+        city:
+          type: string
+        keySaeNew:
+          type: string
+        daysVisited:
+          type: object
+          properties:
+            monday:
+              type: boolean
+            tuesday:
+              type: boolean
+            wednesday:
+              type: boolean
+            thursday:
+              type: boolean
+            friday:
+              type: boolean
+            saturday:
+              type: boolean
+            sunday:
+              type: boolean
+    LastCountClient:
+      type: object
+      properties:
+        count:
+          type: number
+    DaysVisitedResponse:
+      type: object
+      properties:
+        daysVisitedId:
+          type: number
+        monday:
+          type: boolean
+        tuesday:
+          type: boolean
+        wednesday:
+          type: boolean
+        thursday:
+          type: boolean
+        friday:
+          type: boolean
+        saturday:
+          type: boolean
+        sunday:
+          type: boolean
+    SellerClientUpdateRequest:
+      type: object
+      properties:
+        keyClientId:
+          type: number
+        name:
+          type: string
+        street:
+          type: string
+        suburb:
+          type: string
+    ListSellers:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: number
+          saeKey:
+            type: string
+          name:
+            type: string
+          email:
+            type: string
+          job:
+            type: string
+          warehouseKeySae:
+            type: string
+          status:
+            type: string
+          cve:
+            type: string
+          token:
+            type: string
+          createAt:
+            type: string
+            format: date
+  securitySchemes:
+    bearerAuth:            # arbitrary name for the security scheme
+      type: http
+      scheme: bearer
+      bearerFormat: JWT    # optional, arbitrary value for documentation purposes
+# 2) Apply the security globally to all operations
+security:
+  - bearerAuth: [] 
